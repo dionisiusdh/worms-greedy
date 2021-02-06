@@ -1,7 +1,7 @@
 # Tugas Besar 1 - Strategi Algoritma
 > Pemanfaatan Algoritma *Greedy* dalam Aplikasi Permainan *Worms*
 
-### Kelompok 8 - Oolva The Banana Bomber
+### Kelompok 8 - Anang Hijau
 | Anggota | NIM |
 | --- | --- |
 |Dionisius Darryl H. | 13519058 |	
