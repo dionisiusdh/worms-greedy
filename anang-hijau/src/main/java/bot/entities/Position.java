@@ -16,8 +16,8 @@ public class Position {
      * @param x nilai absis
      * @param y nilai ordinat
      */
-    public Position(int x, int y) {
-        this.x = x;
-        this.y = y;
-    }
+    //public Position(int x, int y) {
+        //this.x = x;
+        //this.y = y;
+    //}
 }
