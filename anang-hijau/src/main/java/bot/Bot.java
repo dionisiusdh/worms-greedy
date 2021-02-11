@@ -201,17 +201,15 @@ public class Bot {
      * @param currentWorm worm yang di-select
      * @return posisi terbaik
      */
-    private Cell moveEarlyGame(Worm currentWorm) {
-        ArrayList<Worm> enemyWorms = getEnemyWorms();
-        ArrayList<Worm> friendlyWorms = getFriendlyWorms();
+    private Cell moveEarlyGame() {
         Worm targetWorm;
         Cell targetCell;
 
         // TODO: Mungkin bisa dibikin lebih mangkus
-        if (isExistGoodWorm(enemyWorms)){
-            targetWorm = getLowestHPWorm(enemyWorms);
+        if (isExistGoodWorm()){
+            targetWorm = getLowestHPWorm();
         } else {
-            targetWorm = getNearestWorm(friendlyWorms, enemyWorms);
+            targetWorm = getNearestWorm();
         }
 
         targetCell = getCellNearestToEnemyWorm(currentWorm, targetWorm);
@@ -220,43 +218,15 @@ public class Bot {
     }
 
     /**
-     * Metode untuk membuat ArrayList berisi worms milik bot
-     * @return ArrayList berisi worms milik bot
-     */
-    private ArrayList<Worm> getFriendlyWorms() {
-        ArrayList<Worm> worms = new ArrayList<Worm>();
-
-        for (Worm friendlyWorm : gameState.myPlayer.worms) {
-            worms.add(friendlyWorm);
-        }
-
-        return worms;
-    }
-
-    /**
-     * Metode untuk membuat ArrayList berisi worms musuh
-     * @return ArrayList berisi worms musuh
-     */
-    private ArrayList<Worm> getEnemyWorms() {
-        ArrayList<Worm> worms = new ArrayList<Worm>();
-
-        for (Worm enemyWorm : gameState.opponents[0].worms) {
-            worms.add(enemyWorm);
-        }
-
-        return worms;
-    }
-
-    /**
      * Metode untuk mendapatkan bot dengan HP terendah
      * @param enemyWorms ArrayList of worms milik musuh
      * @return list worm dengan HP terendah
      */
-    private Worm getLowestHPWorm(ArrayList<Worm> enemyWorms) {
-        int leastWormHp = enemyWorms.get(0).health;
-        Worm selected = enemyWorms.get(0);
+    private Worm getLowestHPWorm() {
+        int leastWormHp = opponent.worms[0].health;
+        Worm selected = opponent.worms[0];
 
-        for (Worm worm : enemyWorms){
+        for (Worm worm : opponent.worms){
             if (worm.health < leastWormHp) {
                 selected = worm;
             }
@@ -271,25 +241,25 @@ public class Bot {
      * @param enemyWorms ArrayList of worms milik musuh
      * @return worm dengan jarak terdekat
      */
-    private Worm getNearestWorm(ArrayList<Worm> friendlyWorms, ArrayList<Worm> enemyWorms) {
+    private Worm getNearestWorm() {
         int enemyX, enemyY;
-        Worm nearestEnemyWorm = enemyWorms.get(0);
+        Worm nearestEnemyWorm = opponent.worms[0];
         int minDistance = 9999999;
         int currDistance;
 
-        for (Worm friendlyWorm : friendlyWorms){
-            for (Worm enemyWorm : enemyWorms){
-                enemyX = enemyWorm.position.x;
-                enemyY = enemyWorm.position.y;
-                currDistance = euclideanDistance(friendlyWorm.position.x, friendlyWorm.position.y, enemyX, enemyY);
+        for (Worm enemyWorm : opponent.worms){
+            enemyX = enemyWorm.position.x;
+            enemyY = enemyWorm.position.y;
+            currDistance = euclideanDistance(currentWorm.position.x,
+                                                currentWorm.position.y,
+                                                enemyX, enemyY);
 
-                if (currDistance < minDistance){
-                    minDistance = currDistance;
-                    nearestEnemyWorm = enemyWorm;
-                }
+            if (currDistance < minDistance){
+                minDistance = currDistance;
+                nearestEnemyWorm = enemyWorm;
             }
         }
-        
+
         return nearestEnemyWorm;
     }
 
@@ -300,15 +270,15 @@ public class Bot {
      * @return true jika ada worm yang memiliki HP dengan selisih lebih besar
      * dari batas
      */
-    private boolean isExistGoodWorm(ArrayList<Worm> enemyWorms) {
+    private boolean isExistGoodWorm() {
         int lowestHp = 99999999;
-        for (Worm worm: enemyWorms) {
+        for (Worm worm: opponent.worms) {
             if (lowestHp > worm.health && worm.health > 0) {
                 lowestHp = worm.health;
             }
         }
 
-        for (Worm worm: enemyWorms) {
+        for (Worm worm: opponent.worms) {
             if (worm.health - lowestHp >= 20) {
                 return true;
             }
@@ -318,8 +288,8 @@ public class Bot {
     }
 
     private boolean isBananaBombable(Worm enemyWorm) {
-        if (currentWorm.bananaBombs == null) return false;
-        
+        if (currentWorm.profession != Profession.AGENT) return false;
+
         Position target = new Position(enemyWorm.position.x,
                                         enemyWorm.position.y);
         int distance = euclideanDistance(currentWorm.position.x,
@@ -331,8 +301,8 @@ public class Bot {
     }
 
     private boolean isSnowballable(Worm enemyWorm) {
-        if (currentWorm.snowballs == null) return false;
-        
+        if (currentWorm.profession != Profession.TECHNOLOGIST) return false;
+
         Position target = new Position(enemyWorm.position.x,
                                         enemyWorm.position.y);
         int distance = euclideanDistance(currentWorm.position.x,
@@ -362,7 +332,7 @@ public class Bot {
             return new ShootCommand(direction);
         }
 
-        Cell targetCell = moveEarlyGame(currentWorm);
+        Cell targetCell = moveEarlyGame();
         if (targetCell.type == CellType.AIR) {
             return new MoveCommand(targetCell.x, targetCell.y);
         } else if (targetCell.type == CellType.DIRT) {
