@@ -10,5 +10,5 @@ public class MyWorm extends Worm {
     public Snowball snowballs;
 
     @SerializedName("bananaBombs")
-    public BananaBomb bananaBomb;
+    public BananaBomb bananaBombs;
 }

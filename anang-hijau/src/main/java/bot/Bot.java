@@ -4,6 +4,7 @@ import bot.command.*;
 import bot.entities.*;
 import bot.enums.CellType;
 import bot.enums.Direction;
+import bot.enums.Profession;
 
 // import java.lang.reflect.Array;
 import java.util.*;
@@ -51,6 +52,8 @@ public class Bot {
                 .collect(Collectors.toSet());
 
         for (Worm enemyWorm : opponent.worms) {
+            if (enemyWorm.health <= 0) continue;
+
             String enemyPosition = String.format("%d_%d", enemyWorm.position.x, enemyWorm.position.y);
             if (cells.contains(enemyPosition)) {
                 return enemyWorm;
@@ -314,6 +317,32 @@ public class Bot {
         return false;
     }
 
+    private boolean isBananaBombable(Worm enemyWorm) {
+        if (currentWorm.bananaBombs == null) return false;
+        
+        Position target = new Position(enemyWorm.position.x,
+                                        enemyWorm.position.y);
+        int distance = euclideanDistance(currentWorm.position.x,
+                                    currentWorm.position.y, target.x, target.y);
+
+        return currentWorm.bananaBombs.count > 0
+            && distance <= currentWorm.bananaBombs.range
+            && distance > currentWorm.bananaBombs.damageRadius * 0.75;
+    }
+
+    private boolean isSnowballable(Worm enemyWorm) {
+        if (currentWorm.snowballs == null) return false;
+        
+        Position target = new Position(enemyWorm.position.x,
+                                        enemyWorm.position.y);
+        int distance = euclideanDistance(currentWorm.position.x,
+                                    currentWorm.position.y, target.x, target.y);
+        return currentWorm.snowballs.count > 0
+            && distance <= currentWorm.snowballs.range
+            && distance > currentWorm.snowballs.freezeRadius * 0.75
+            && enemyWorm.roundsUntilUnfrozen == 0;
+    }
+
     /**
      * Metode untuk menjalankan bot
      * @return command yang ingin dijalankan
@@ -321,6 +350,13 @@ public class Bot {
     public Command run() {
         Worm enemyWorm = getFirstWormInRange();
         if (enemyWorm != null) {
+            if (isBananaBombable(enemyWorm))
+                return new BananaCommand(enemyWorm.position.x,
+                                            enemyWorm.position.y);
+            if (isSnowballable(enemyWorm))
+                return new SnowballCommand(enemyWorm.position.x,
+                                            enemyWorm.position.y);
+
             Direction direction = resolveDirection(currentWorm.position,
                                                     enemyWorm.position);
             return new ShootCommand(direction);
