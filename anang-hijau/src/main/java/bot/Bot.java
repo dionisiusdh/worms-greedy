@@ -10,20 +10,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Bot {
-    /** ANANG GREEN **
-     * List fungsi:
-     * - ctor Bot
-     * - getCurrentWorm()
-     * - getFirstWormInRange()
-     * - constructFireDirectionLines()
-     * - getSurroundingCells()
-     * - euclideanDistance()
-     * - isValidCoordinate()
-     * - resolveDirection()
-     * - run()
-     */
-
-    private Random random;
     private GameState gameState;
     private Opponent opponent;
     private MyWorm currentWorm;
@@ -33,8 +19,7 @@ public class Bot {
      * @param random ???
      * @param gameState ???
      */
-    public Bot(Random random, GameState gameState) {
-        this.random = random;
+    public Bot(GameState gameState) {
         this.gameState = gameState;
         this.opponent = gameState.opponents[0];
         this.currentWorm = getCurrentWorm(gameState);
@@ -58,6 +43,7 @@ public class Bot {
      * @return worm musuh pertama yang dapat ditembak
      */
     private Worm getFirstWormInRange() {
+        /// semua sel yang dalam line of fire
         Set<String> cells = constructFireDirectionLines(currentWorm.weapon.range)
                 .stream()
                 .flatMap(Collection::stream)
@@ -180,6 +166,12 @@ public class Bot {
                 && y >= 0 && y < gameState.mapSize;
     }
 
+    /**
+     * Metode untuk menentukan arah dari dua posisi
+     * @param a posisi a
+     * @param b posisi b
+     * @return arah untuk kedua posisi
+     */
     private Direction resolveDirection(Position a, Position b) {
         StringBuilder builder = new StringBuilder();
 
@@ -206,7 +198,7 @@ public class Bot {
      * @param currentWorm worm yang di-select
      * @return posisi terbaik
      */
-    private Cell getGreedyMove(Worm currentWorm) {
+    private Cell moveEarlyGame(Worm currentWorm) {
         ArrayList<Worm> enemyWorms = getEnemyWorms();
         ArrayList<Worm> friendlyWorms = getFriendlyWorms();
         Worm targetWorm;
@@ -214,10 +206,8 @@ public class Bot {
 
         // TODO: Mungkin bisa dibikin lebih mangkus
         if (isExistGoodWorm(enemyWorms)){
-            System.out.println("agama bro");
             targetWorm = getLowestHPWorm(enemyWorms);
         } else {
-            System.out.println("bruhhh");
             targetWorm = getNearestWorm(friendlyWorms, enemyWorms);
         }
 
@@ -296,7 +286,7 @@ public class Bot {
                 }
             }
         }
-
+        
         return nearestEnemyWorm;
     }
 
@@ -317,7 +307,6 @@ public class Bot {
 
         for (Worm worm: enemyWorms) {
             if (worm.health - lowestHp >= 20) {
-                System.out.println(worm.health - lowestHp);
                 return true;
             }
         }
@@ -337,7 +326,7 @@ public class Bot {
             return new ShootCommand(direction);
         }
 
-        Cell targetCell = getGreedyMove(currentWorm);
+        Cell targetCell = moveEarlyGame(currentWorm);
         if (targetCell.type == CellType.AIR) {
             return new MoveCommand(targetCell.x, targetCell.y);
         } else if (targetCell.type == CellType.DIRT) {
