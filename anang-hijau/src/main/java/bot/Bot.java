@@ -271,6 +271,12 @@ public class Bot {
         return null;
     }
 
+    /**
+     * Metode untuk memeriksa ada atau tidaknya friendly worm di dalam range
+     * tembak (line of fire)
+     * @param targetPos posisi yang ingin ditembak
+     * @return true jika ada teman yang dapat ditembak, false jika tidak ada
+     */
     private boolean isFriendlyInRange(Position targetPos) {
         boolean isDiagonal = (currentWorm.position.x != targetPos.x)
                                 && (currentWorm.position.y != targetPos.y);
@@ -324,6 +330,12 @@ public class Bot {
         return false;
     }
 
+    /**
+     * Mendapatkan sel di peta pada map
+     * @param x absis
+     * @param y ordinat
+     * @return sel peta di titik (x,y)
+     */
     private Cell getCell(int x, int y) {
         return gameState.map[y][x];
     }
