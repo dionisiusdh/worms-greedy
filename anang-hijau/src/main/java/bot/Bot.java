@@ -17,8 +17,7 @@ public class Bot {
 
     /**
      * Metode constructor bot
-     * @param random ???
-     * @param gameState ???
+     * @param gameState Keadaan game di ronde
      */
     public Bot(GameState gameState) {
         this.gameState = gameState;
@@ -201,7 +200,7 @@ public class Bot {
      * @param currentWorm worm yang di-select
      * @return posisi terbaik
      */
-    private Cell moveEarlyGame() {
+    private Cell goGreedy() {
         Worm targetWorm;
         Cell targetCell;
 
@@ -227,7 +226,7 @@ public class Bot {
         Worm selected = opponent.worms[0];
 
         for (Worm worm : opponent.worms){
-            if (worm.health < leastWormHp) {
+            if (worm.health < leastWormHp && worm.health > 0) {
                 selected = worm;
             }
         }
@@ -332,7 +331,7 @@ public class Bot {
             return new ShootCommand(direction);
         }
 
-        Cell targetCell = moveEarlyGame();
+        Cell targetCell = goGreedy();
         if (targetCell.type == CellType.AIR) {
             return new MoveCommand(targetCell.x, targetCell.y);
         } else if (targetCell.type == CellType.DIRT) {
