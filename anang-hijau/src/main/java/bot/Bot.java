@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 public class Bot {
     private GameState gameState;
     private Opponent opponent;
-    private Worm currentWorm;
+    private MyWorm currentWorm;
     private static ArrayList<Position> hpLoc;
 
     /**
@@ -38,7 +38,7 @@ public class Bot {
         for (Cell[] cells : map) {
             for (Cell cells2 : cells) {
                 if (cells2.powerUp == null) continue;
-                
+
                 if (cells2.powerUp.type == PowerUpType.HEALTH_PACK) {
                     hpLoc.add(new Position(cells2.x, cells2.y));
                 }
@@ -53,7 +53,7 @@ public class Bot {
      * @param gameState gameState pada suatu ronde
      * @return array of worms milik bot
      */
-    private Worm getCurrentWorm(GameState gameState) {
+    private MyWorm getCurrentWorm(GameState gameState) {
         return Arrays.stream(gameState.myPlayer.worms)
                 .filter(myWorm -> myWorm.id == gameState.currentWormId)
                 .findFirst()
@@ -80,7 +80,7 @@ public class Bot {
                 return enemyWorm;
             }
         }
-        
+
         return null;
     }
 
@@ -102,7 +102,7 @@ public class Bot {
                 return enemyWorm;
             }
         }
-        
+
         return null;
     }
 
@@ -287,7 +287,7 @@ public class Bot {
                 
                     curX = currentWorm.position.x + i;
                     if (getCell(curX, curY).occupier != null && getCell(curX,
-                        curY).occupier.id == gameState.myPlayer.id) {
+                        curY).occupier.playerId == gameState.myPlayer.id) {
                         return true;
                     }
                 }
@@ -300,7 +300,7 @@ public class Bot {
                 
                     curY = currentWorm.position.y + i;
                     if (getCell(curX, curY).occupier != null && getCell(curX,
-                        curY).occupier.id == gameState.myPlayer.id) {
+                        curY).occupier.playerId == gameState.myPlayer.id) {
                         return true;
                     }
                 }
@@ -315,7 +315,7 @@ public class Bot {
                 curX = currentWorm.position.x + i;
                 curY = currentWorm.position.y + i;
                 if (getCell(curX, curY).occupier != null && getCell(curX,
-                    curY).occupier.id == gameState.myPlayer.id) {
+                    curY).occupier.playerId == gameState.myPlayer.id) {
                     return true;
                 }
             }

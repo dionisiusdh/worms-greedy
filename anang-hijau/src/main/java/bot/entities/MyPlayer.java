@@ -13,5 +13,5 @@ public class MyPlayer {
     public int health;
 
     @SerializedName("worms")
-    public Worm[] worms;
+    public MyWorm[] worms;
 }
