@@ -12,8 +12,8 @@ import java.util.stream.Collectors;
 public class Bot {
     private GameState gameState;
     private Opponent opponent;
-    private MyWorm currentWorm;
-    private static ArrayList<Cell> hpLoc;
+    private Worm currentWorm;
+    private static ArrayList<Position> hpLoc;
 
     /**
      * Metode constructor bot
@@ -28,15 +28,19 @@ public class Bot {
         }
     }
 
-    private ArrayList<Cell> getHealthPackLoc() {
+    /**
+     * Metode untuk mendapatkan list posisi dari health pack
+     * @return list posisi heealth pack
+     */
+    private ArrayList<Position> getHealthPackLoc() {
         Cell[][] map = gameState.map;
-        ArrayList<Cell> hpLoc = new ArrayList<Cell>();
+        ArrayList<Position> hpLoc = new ArrayList<Position>();
         for (Cell[] cells : map) {
             for (Cell cells2 : cells) {
                 if (cells2.powerUp == null) continue;
                 
                 if (cells2.powerUp.type == PowerUpType.HEALTH_PACK) {
-                    hpLoc.add(cells2);
+                    hpLoc.add(new Position(cells2.x, cells2.y));
                 }
             }
         }
@@ -49,7 +53,7 @@ public class Bot {
      * @param gameState gameState pada suatu ronde
      * @return array of worms milik bot
      */
-    private MyWorm getCurrentWorm(GameState gameState) {
+    private Worm getCurrentWorm(GameState gameState) {
         return Arrays.stream(gameState.myPlayer.worms)
                 .filter(myWorm -> myWorm.id == gameState.currentWormId)
                 .findFirst()
@@ -158,8 +162,8 @@ public class Bot {
     }
 
     /**
-     * Metode untuk mendapatkan sel di sekitar musuh yang terdekat dengan salah
-     * satu worm milik bot
+     * Metode untuk mendapatkan sel di sekitar worm yang terdekat dengan salah
+     * satu worm musuh
      * @param enemyWorm worm milik musuh
      * @return sel terdekat antara salah satu worm milik musuh dengan salah satu
      * worm milik bot
@@ -185,8 +189,8 @@ public class Bot {
     }
 
     /**
-     * Metode untuk mendapatkan sel di sekitar healthpack yang terdekat dengan
-     * salah satu worm milik bot
+     * Metode untuk mendapatkan sel di sekitar worm yang terdekat dengan
+     * salah satu healthpack
      * @param hpLoc sel yg berisi healthpack
      * @return sel terdekat antara salah satu worm milik musuh dengan salah satu
      * worm milik bot
@@ -216,7 +220,7 @@ public class Bot {
      * @param currentWorm worm yang di-select
      * @return posisi terbaik
      */
-    private Cell goGreedy() {
+    private Cell getLowetOrNearest() {
         Worm targetWorm;
         Cell targetCell;
 
@@ -233,27 +237,15 @@ public class Bot {
     }
 
     /**
-     * Metode untuk mendapatkan yang harus dituju untuk ke
-     * sel berisi health pack
-     * @return Sel yang harus dituju untuk mendapatkan health pack
-     */
-    private Cell goHealthPack() {
-        Cell targetCell;
-        Cell nearestHPLoc;
-
-        nearestHPLoc = getCloseHealthPack();
-        targetCell = getCellNearestToHealthPack(nearestHPLoc);
-
-        return targetCell;
-    }
-
-    /**
      * Metode untuk memeriksa apakah health pack masih ada di hpLoc atau tidak
      */
     private void checkHealthPack() {
-        for (Cell hp : hpLoc) {
-            if (hp.powerUp == null) {
-                hpLoc.remove(0);
+        for (Iterator<Position> it = hpLoc.iterator(); it.hasNext();) { 
+            Position pos = it.next();
+            Cell curCel = getCell(pos.x, pos.y);
+
+            if (curCel.powerUp == null) {
+                it.remove();
             }
         }
     }
@@ -264,14 +256,14 @@ public class Bot {
      */
     private Cell getCloseHealthPack() {
         if (hpLoc.size() != 0) {
-            for (Cell hp : hpLoc) {
+            for (Position hp : hpLoc) {
                 int curX = currentWorm.position.x;
                 int curY = currentWorm.position.y;
                 int distance = euclideanDistance(curX, curY, hp.x, hp.y);
-                final int MAX_RANGE_TO_HP = 1;
+                final int MAX_RANGE_TO_HP = 10;
 
                 if (distance <= MAX_RANGE_TO_HP) {
-                    return hp;
+                    return gameState.map[hp.x][hp.y];
                 }
             }
         }
@@ -279,46 +271,61 @@ public class Bot {
         return null;
     }
 
-    private boolean isFriendlyInFireRange(Position targetPos) {
+    private boolean isFriendlyInRange(Position targetPos) {
         boolean isDiagonal = (currentWorm.position.x != targetPos.x)
-                            && (currentWorm.position.y != targetPos.y);
-        for (MyWorm muhWorm : gameState.myPlayer.worms) {
-            if (muhWorm == currentWorm) continue;
+                                && (currentWorm.position.y != targetPos.y);
 
-            if (!isDiagonal) {
-                if (currentWorm.position.x == targetPos.x) {
-                    for (int i = currentWorm.position.x;
-                        i != targetPos.x;
-                        i = i + currentWorm.position.x < targetPos.x ? 1 : -1) {
-                    
-                        if (muhWorm.position.y == currentWorm.position.y + i) {
-                            return true;
-                        }
-                    }
-                } else if (currentWorm.position.x == targetPos.x) {
-                    for (int i = currentWorm.position.y;
-                        i != targetPos.y;
-                        i = i + currentWorm.position.y < targetPos.y ? 1 : -1) {
-                    
-                        if (muhWorm.position.x == currentWorm.position.x + i) {
-                            return true;
-                        }
+        int curX = currentWorm.position.x,
+            curY = currentWorm.position.y;
+        if (!isDiagonal) {
+            if (currentWorm.position.x != targetPos.x) {
+                for (int i = 0;
+                    i != targetPos.x && isValidCoordinate(currentWorm.position.x+i, curY);
+                    i = i + (currentWorm.position.x < targetPos.x ? 1 : -1)) {
+
+                    if (i == 0) continue;
+                
+                    curX = currentWorm.position.x + i;
+                    if (getCell(curX, curY).occupier != null && getCell(curX,
+                        curY).occupier.id == gameState.myPlayer.id) {
+                        return true;
                     }
                 }
             } else {
-                for (int i = currentWorm.position.y;
-                    i != targetPos.y;
-                    i = i + currentWorm.position.y < targetPos.y ? 1 : -1) {
+                for (int i = 0;
+                    i != targetPos.y && isValidCoordinate(curX, currentWorm.position.y+i);
+                    i = i + (currentWorm.position.y < targetPos.y ? 1 : -1)) {
+
+                    if (i == 0) continue;
                 
-                    if (muhWorm.position.x == currentWorm.position.x + i
-                        && muhWorm.position.x == currentWorm.position.y) {
+                    curY = currentWorm.position.y + i;
+                    if (getCell(curX, curY).occupier != null && getCell(curX,
+                        curY).occupier.id == gameState.myPlayer.id) {
                         return true;
                     }
+                }
+            }
+        } else {
+            for (int i = currentWorm.position.y;
+                i != targetPos.y && isValidCoordinate(currentWorm.position.x+i, currentWorm.position.y+i);
+                i = i + (currentWorm.position.y < targetPos.y ? 1 : -1)) {
+
+                if (i == 0) continue;
+            
+                curX = currentWorm.position.x + i;
+                curY = currentWorm.position.y + i;
+                if (getCell(curX, curY).occupier != null && getCell(curX,
+                    curY).occupier.id == gameState.myPlayer.id) {
+                    return true;
                 }
             }
         }
 
         return false;
+    }
+
+    private Cell getCell(int x, int y) {
+        return gameState.map[y][x];
     }
 
     /**
@@ -478,15 +485,18 @@ public class Bot {
      * @return command yang ingin dijalankan
      */
     public Command run() {
-        checkHealthPack();
+        if (hpLoc.size() > 0) { 
+            checkHealthPack();
+        }
 
         Worm enemyWorm;
 
         if (currentWorm.bananaBombs != null) {
             enemyWorm = getFirstWormInRangeBanana();
-            if (enemyWorm != null && isBananaBombable(enemyWorm))
+            if (enemyWorm != null && isBananaBombable(enemyWorm)) { 
                 return new BananaCommand(enemyWorm.position.x,
                                             enemyWorm.position.y);
+            }
         }
 
         enemyWorm = getFirstWormInRange();
@@ -495,21 +505,25 @@ public class Bot {
                 return new SnowballCommand(enemyWorm.position.x,
                                             enemyWorm.position.y);
 
-            if (!isFriendlyInFireRange(
-                    new Position(enemyWorm.position.x, enemyWorm.position.y))) {
+            if (!isFriendlyInRange(new Position(enemyWorm.position.x,
+                                                enemyWorm.position.y))) {
                 Direction direction = resolveDirection(currentWorm.position,
                                                         enemyWorm.position);
                 return new ShootCommand(direction);
             }
+            // Direction direction = resolveDirection(currentWorm.position,
+            //                                         enemyWorm.position);
+            // return new ShootCommand(direction);
         }
 
         Cell targetCell;
-        if (getCloseHealthPack() != null){
-            targetCell = goHealthPack();
-        } else {
-            targetCell = goGreedy();
-        }
-        targetCell = goGreedy();
+        // Cell hpLoc = getCloseHealthPack();
+        // if (hpLoc != null){
+        //     targetCell = getCellNearestToHealthPack(hpLoc);
+        // } else {
+        //     targetCell = getLowetOrNearest();
+        // }
+        targetCell = getLowetOrNearest();
         
         if (targetCell.type == CellType.AIR) {
             return new MoveCommand(targetCell.x, targetCell.y);
@@ -527,4 +541,4 @@ public class Bot {
 // 2. Jangan sampe do nothing
 // 3. Timeout
 // 4. Shot blocked
-// 5. Can't move (occupied) Pake ("occupier di JSON")
+// 5. Can't move (occupied) Pake ("occupier" di JSON)

@@ -25,4 +25,13 @@ public class Worm {
 
     @SerializedName("profession")
     public Profession profession;
+
+    @SerializedName("weapon")
+    public Weapon weapon;
+
+    @SerializedName("snowballs")
+    public Snowball snowballs;
+
+    @SerializedName("bananaBombs")
+    public BananaBomb bananaBombs;
 }
