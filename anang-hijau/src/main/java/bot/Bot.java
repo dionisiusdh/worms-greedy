@@ -141,6 +141,7 @@ public class Bot {
                     break;
                 }
 
+                // Friendly fire checker
                 if (cell.occupier != null && cell.occupier.playerId ==
                     gameState.myPlayer.id) {
                     break;
@@ -248,11 +249,11 @@ public class Bot {
                 int curX = currentWorm.position.x;
                 int curY = currentWorm.position.y;
                 int distance = euclideanDistance(curX, curY, hp.x, hp.y);
-                final int MAX_RANGE_TO_HP = 10;
+                final int MAX_RANGE_TO_HP = 100;
 
                 if (distance <= MAX_RANGE_TO_HP
                     && getCell(hp.x, hp.y).powerUp != null) {
-                    return gameState.map[hp.x][hp.y];
+                    return getCell(hp.x, hp.y);
                 }
             }
         }
@@ -476,11 +477,6 @@ public class Bot {
             if (isSnowballable(enemyWorm))
                 return new SnowballCommand(enX, enY);
 
-            // Cek dlu kalo nembak kena temen atau nggak
-            // if (!isFriendlyInRange(new Position(enX, enY))) {
-            //     Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
-            //     return new ShootCommand(direction);
-            // }
             Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
             return new ShootCommand(direction);
         }
@@ -488,12 +484,19 @@ public class Bot {
         /// Sel di sekitar worm yang akan jadi tempat move/dig selanjutnya
         Cell targetCell, enemyCell, hpCell;
 
-        // Nyari health pack terdekat TODO: MASIH RUSAK
-        /*
+        // Nyari health pack terdekat
         hpCell = getCloseHealthPack();
         if (hpCell != null){
             // Kalo ada healthpack yang deket, nentuin move ke sel mana
-            targetCell = getSurroundCellNearestToTarget(hpCell);
+            int x = currentWorm.position.x,
+                y = currentWorm.position.y;
+
+            // Kalo udah di sebelah health pack, lgsg jalan ke health pack aja
+            if (euclideanDistance(x, y, hpCell.x, hpCell.y) <= 1) {
+                targetCell = hpCell;
+            } else {
+                targetCell = getSurroundCellNearestToTarget(hpCell);
+            }
         } else {
             // Tentuin mendingan ke musuh terdekat atau tersekarat
             enemyCell = getLowetOrNearest();
@@ -502,13 +505,9 @@ public class Bot {
             targetCell = getSurroundCellNearestToTarget(enemyCell);
 
         }
-        */
-        enemyCell = getLowetOrNearest();
-        // Nentuin move ke sel mana
-        targetCell = getSurroundCellNearestToTarget(enemyCell);
 
         // Cek tipe sel yang dituju
-        if (targetCell.type == CellType.AIR) {
+        if (targetCell.type == CellType.AIR || targetCell.type == CellType.LAVA) {
             return new MoveCommand(targetCell.x, targetCell.y);
         } else if (targetCell.type == CellType.DIRT) {
             return new DigCommand(targetCell.x, targetCell.y);
@@ -517,7 +516,3 @@ public class Bot {
         return new DoNothingCommand();
     }
 }
-
-// TODO:
-// 1. Jangan sampe do nothing
-// 2. Can't move (occupied) Pake ("occupier" di JSON)
