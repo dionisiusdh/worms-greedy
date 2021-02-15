@@ -249,7 +249,7 @@ public class Bot {
                 int curX = currentWorm.position.x;
                 int curY = currentWorm.position.y;
                 int distance = euclideanDistance(curX, curY, hp.x, hp.y);
-                final int MAX_RANGE_TO_HP = 100;
+                final int MAX_RANGE_TO_HP = 10;
 
                 if (distance <= MAX_RANGE_TO_HP
                     && getCell(hp.x, hp.y).powerUp != null) {
@@ -491,7 +491,7 @@ public class Bot {
             int x = currentWorm.position.x,
                 y = currentWorm.position.y;
 
-            // Kalo udah di sebelah health pack, lgsg jalan ke health pack aja
+            // Kalo udah di sebelah health pack, ambil health packnya
             if (euclideanDistance(x, y, hpCell.x, hpCell.y) <= 1) {
                 targetCell = hpCell;
             } else {
@@ -506,8 +506,19 @@ public class Bot {
 
         }
 
+        // Kalo wormnya ada di Lava
+        if (getCell(currentWorm.position.x, currentWorm.position.y).type == CellType.LAVA) {
+            // Cek tipe sel yang dituju
+            if (targetCell.type == CellType.AIR || targetCell.type == CellType.LAVA) {
+                return new MoveCommand(targetCell.x, targetCell.y);
+            } else if (targetCell.type == CellType.DIRT) {
+                return new DigCommand(targetCell.x, targetCell.y);
+            }
+        }
+
+        // Wormnya ga ada di lava
         // Cek tipe sel yang dituju
-        if (targetCell.type == CellType.AIR || targetCell.type == CellType.LAVA) {
+        if (targetCell.type == CellType.AIR) {
             return new MoveCommand(targetCell.x, targetCell.y);
         } else if (targetCell.type == CellType.DIRT) {
             return new DigCommand(targetCell.x, targetCell.y);
