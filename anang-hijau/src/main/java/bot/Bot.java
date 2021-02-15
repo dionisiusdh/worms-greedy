@@ -6,6 +6,9 @@ import bot.enums.CellType;
 import bot.enums.Direction;
 import bot.enums.PowerUpType;
 
+// (༼ つ ◕_◕ ༽つ ( •_•)>⌐■-■ ( •_•)>⌐■-■ ( •_•)>⌐■-■－O－
+// nice
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -421,7 +424,8 @@ public class Bot {
          */
         return currentWorm.bananaBombs.count > 0
             && distance <= currentWorm.bananaBombs.range
-            && distance > currentWorm.bananaBombs.damageRadius;
+            && (distance > currentWorm.bananaBombs.damageRadius
+                || currentWorm.health < 50);
     }
 
     /**
@@ -444,7 +448,8 @@ public class Bot {
          */
         return currentWorm.snowballs.count > 0
             && distance <= currentWorm.snowballs.range
-            && distance > currentWorm.snowballs.freezeRadius
+            && (distance > currentWorm.snowballs.freezeRadius
+                || currentWorm.health < 50)
             && enemyWorm.roundsUntilUnfrozen == 0;
     }
 
@@ -542,22 +547,20 @@ public class Bot {
         Cell targetCell;
 
         // Nyari health pack terdekat TODO: MASIH RUSAK
-        /*
-        Cell hpLoc = getCloseHealthPack();
-        if (hpLoc != null){
+        Cell hpCell = getCloseHealthPack();
+        if (hpCell != null){
             // Kalo ada healthpack yang deket, nentuin move ke sel mana
-            targetCell = getSurroundCellNearestToTarget(hpLoc);
+            targetCell = getSurroundCellNearestToTarget(hpCell);
         } else {
             // Tentuin mendingan ke musuh terdekat atau tersekarat
-            targetCell = getLowetOrNearest();
+            Cell enemeyCell = getLowetOrNearest();
 
             // Nentuin move ke sel mana
-            targetCell = getSurroundCellNearestToTarget(targetCell);
+            targetCell = getSurroundCellNearestToTarget(enemeyCell);
         }
-        */
-        targetCell = getLowetOrNearest();
+        // targetCell = getLowetOrNearest();
         // Nentuin move ke sel mana
-        targetCell = getSurroundCellNearestToTarget(targetCell);
+        // targetCell = getSurroundCellNearestToTarget(targetCell);
         
         if (targetCell.type == CellType.AIR) {
             return new MoveCommand(targetCell.x, targetCell.y);
@@ -568,7 +571,6 @@ public class Bot {
         return new DoNothingCommand();
     }
 }
-
 
 // TODO:
 // 1. Jangan sampe do nothing
