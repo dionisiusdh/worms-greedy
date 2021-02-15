@@ -26,6 +26,7 @@ public class Bot {
         this.gameState = gameState;
         this.opponent = gameState.opponents[0];
         this.currentWorm = getCurrentWorm(gameState);
+
         if (gameState.currentRound == 1) {
             // hpLoc hanya perlu diset pada round pertama
             hpLoc = getHealthPackLoc();
@@ -140,6 +141,11 @@ public class Bot {
                     break;
                 }
 
+                if (cell.occupier != null && cell.occupier.playerId ==
+                    gameState.myPlayer.id) {
+                    break;
+                }
+
                 directionLine.add(cell);
             }
             directionLines.add(directionLine);
@@ -170,7 +176,7 @@ public class Bot {
 
     /**
      * Metode untuk mendapatkan sel di sekitar worm yang terdekat dengan salah
-     * satu worm musuh
+     * satu worm musuh dan belum ditempati
      * @param enemyWorm worm milik musuh
      * @return sel terdekat antara salah satu worm milik musuh dengan salah satu
      * worm milik bot
@@ -183,11 +189,13 @@ public class Bot {
         Cell nearestCell = surroundingCells.get(0);
 
         for (Cell cell : surroundingCells){
-            currDistance = euclideanDistance(target.x, target.y,
-                                            cell.x, cell.y);
-            if (currDistance <= minDistance){
-                minDistance = currDistance;
-                nearestCell = cell;
+            if (cell.occupier == null) {
+                currDistance = euclideanDistance(target.x, target.y,
+                                                cell.x, cell.y);
+                if (currDistance <= minDistance){
+                    minDistance = currDistance;
+                    nearestCell = cell;
+                }
             }
         }
 
@@ -242,84 +250,14 @@ public class Bot {
                 int distance = euclideanDistance(curX, curY, hp.x, hp.y);
                 final int MAX_RANGE_TO_HP = 10;
 
-                if (distance <= MAX_RANGE_TO_HP) {
+                if (distance <= MAX_RANGE_TO_HP
+                    && getCell(hp.x, hp.y).powerUp != null) {
                     return gameState.map[hp.x][hp.y];
                 }
             }
         }
         
         return null;
-    }
-
-    /**
-     * Metode untuk memeriksa ada atau tidaknya friendly worm di dalam range
-     * tembak (line of fire)
-     * @param targetPos posisi yang ingin ditembak
-     * @return true jika ada teman yang dapat ditembak, false jika tidak ada
-     */
-    private boolean isFriendlyInRange(Position targetPos) {
-        boolean isDiagonal = (currentWorm.position.x != targetPos.x)
-                                && (currentWorm.position.y != targetPos.y);
-        int curX = currentWorm.position.x,
-            curY = currentWorm.position.y;
-
-        if (!isDiagonal) {
-            if (currentWorm.position.x != targetPos.x) {
-            // worm musuh dan worm kita ada di ordibat yang sama
-                for (int i = 0;
-                    i != targetPos.x && isValidCoordinate(currentWorm.position.x+i, curY);
-                    // i bertambah 1 jika worm kita di atas musuh
-                    // i berkurang 1 jika worm kita di bawah musuh
-                    i = i + (currentWorm.position.x < targetPos.x ? 1 : -1)) {
-
-                    if (i == 0) continue;
-                
-                    // pengecekan occupant sel
-                    curX = currentWorm.position.x + i;
-                    if (getCell(curX, curY).occupier != null && getCell(curX,
-                        curY).occupier.playerId == gameState.myPlayer.id) {
-                        return true;
-                    }
-                }
-            } else {
-                // worm musuh dan worm kita ada di absis yang sama
-                for (int i = 0;
-                    i != targetPos.y && isValidCoordinate(curX, currentWorm.position.y+i);
-                    // i bertambah 1 jika worm kita di atas musuh
-                    // i berkurang 1 jika worm kita di bawah musuh
-                    i = i + (currentWorm.position.y < targetPos.y ? 1 : -1)) {
-
-                    if (i == 0) continue;
-                
-                    // pengecekan occupant sel
-                    curY = currentWorm.position.y + i;
-                    if (getCell(curX, curY).occupier != null && getCell(curX,
-                        curY).occupier.playerId == gameState.myPlayer.id) {
-                        return true;
-                    }
-                }
-            }
-        } else {
-        // Jika diagonal, x dan y bertambah bersamaan dengan nilai yang sama
-            for (int i = currentWorm.position.y;
-                i != targetPos.y && isValidCoordinate(currentWorm.position.x+i, currentWorm.position.y+i);
-                // i bertambah 1 jika worm kita di atas musuh
-                // i berkurang 1 jika worm kita di bawah musuh
-                i = i + (currentWorm.position.y < targetPos.y ? 1 : -1)) {
-
-                if (i == 0) continue;
-            
-                // pengecekan occupant sel
-                curX = currentWorm.position.x + i;
-                curY = currentWorm.position.y + i;
-                if (getCell(curX, curY).occupier != null && getCell(curX,
-                    curY).occupier.playerId == gameState.myPlayer.id) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
     }
 
     /**
@@ -360,6 +298,8 @@ public class Bot {
         int currDistance;
 
         for (Worm enemyWorm : opponent.worms){
+            if (enemyWorm.health <= 0) continue;
+
             enemyX = enemyWorm.position.x;
             enemyY = enemyWorm.position.y;
             currDistance = euclideanDistance(currentWorm.position.x,
@@ -537,31 +477,37 @@ public class Bot {
                 return new SnowballCommand(enX, enY);
 
             // Cek dlu kalo nembak kena temen atau nggak
-            if (!isFriendlyInRange(new Position(enX, enY))) {
-                Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
-                return new ShootCommand(direction);
-            }
+            // if (!isFriendlyInRange(new Position(enX, enY))) {
+            //     Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
+            //     return new ShootCommand(direction);
+            // }
+            Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
+            return new ShootCommand(direction);
         }
 
         /// Sel di sekitar worm yang akan jadi tempat move/dig selanjutnya
-        Cell targetCell;
+        Cell targetCell, enemyCell, hpCell;
 
         // Nyari health pack terdekat TODO: MASIH RUSAK
-        Cell hpCell = getCloseHealthPack();
+        /*
+        hpCell = getCloseHealthPack();
         if (hpCell != null){
             // Kalo ada healthpack yang deket, nentuin move ke sel mana
             targetCell = getSurroundCellNearestToTarget(hpCell);
         } else {
             // Tentuin mendingan ke musuh terdekat atau tersekarat
-            Cell enemeyCell = getLowetOrNearest();
+            enemyCell = getLowetOrNearest();
 
             // Nentuin move ke sel mana
-            targetCell = getSurroundCellNearestToTarget(enemeyCell);
+            targetCell = getSurroundCellNearestToTarget(enemyCell);
+
         }
-        // targetCell = getLowetOrNearest();
+        */
+        enemyCell = getLowetOrNearest();
         // Nentuin move ke sel mana
-        // targetCell = getSurroundCellNearestToTarget(targetCell);
-        
+        targetCell = getSurroundCellNearestToTarget(enemyCell);
+
+        // Cek tipe sel yang dituju
         if (targetCell.type == CellType.AIR) {
             return new MoveCommand(targetCell.x, targetCell.y);
         } else if (targetCell.type == CellType.DIRT) {
