@@ -1,7 +1,5 @@
 package bot.entities;
 
-import java.io.Serial;
-
 import com.google.gson.annotations.SerializedName;
 
 public class Snowball {
