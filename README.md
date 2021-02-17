@@ -10,18 +10,15 @@
 
 ## Table of contents
 * [General info](#general-info)
-* [Screenshots](#screenshots)
-* [Folder structure](#structure)
 * [Technologies and Requirements](#technologies)
 * [Setup](#setup)
-* [Features](#features)
 
 ## General info
-
-## Screenshots
-
-<span id='structure'></span>
-## Folder structure
+Sebuah bot permainan _Worms_ yang mengimplementasikan algoritma _Greedy_.
+Pada bot ini, terdapat 3 strategi _Greedy_ utama yang diimplementasikan yaitu:
+1. Strategi pergerakan (_move_) berdasarkan prioritas _health_ dan jarak ke musuh.
+2. Strategi pemilihan senjata berdasarkan _utilities_ yang ada.
+3. Strategi pengambilan _health pack_
 
 ## Technologies and Requirements
 **Environment requirements**
@@ -43,7 +40,5 @@ Simply edit the game-config.json and game-config-runner.json in the main folder.
 **Running**
 
 Simply run (double-click) the "run.bat" file, or open up Command Prompt in the starter pack's root directory and run the "run.bat" command.
-
-## Features
 
 ## Thank you
