@@ -14,6 +14,7 @@
 * [Setup](#setup)
 
 ## General info
+![](./public/demo.gif)
 Sebuah bot permainan _Worms_ yang mengimplementasikan algoritma _Greedy_.
 Pada bot ini, terdapat 3 strategi _Greedy_ utama yang diimplementasikan yaitu:
 1. Strategi pergerakan (_move_) berdasarkan prioritas _health_ dan jarak ke musuh.
