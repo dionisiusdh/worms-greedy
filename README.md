@@ -1,12 +1,12 @@
-# Tugas Besar 1 - Strategi Algoritma
-> Pemanfaatan Algoritma *Greedy* dalam Aplikasi Permainan *Worms*
+# Entelect Challenge 2019 - Worms
+> A Greedy Worms Bot
 
-### Kelompok 8 - Anang Hijau
-| Anggota | NIM |
-| --- | --- |
-|Dionisius Darryl H. | 13519058 |	
-|Josep Marcello| 13519164 |	
-|Wilson Tandya | 13519209 |
+### Made by
+| |
+| --- |
+|Dionisius Darryl H.  |	
+|Josep Marcello |	
+|Wilson Tandya  |
 
 ## Table of contents
 * [General info](#general-info)
@@ -15,12 +15,14 @@
 
 ## General info
 ![](./public/demo.gif)
-Sebuah bot permainan _Worms_ yang mengimplementasikan algoritma _Greedy_.
-Pada bot ini, terdapat 3 strategi _Greedy_ utama yang diimplementasikan yaitu:
-1. Strategi pergerakan (_move_) berdasarkan prioritas _health_ dan jarak ke musuh.
-2. Strategi pemilihan senjata berdasarkan _utilities_ yang ada.
-3. Strategi pengambilan _health pack_
 
+The Entelect Challenge is an annual coding competition where students, professional developers, and enthusiasts develop an intelligent bot to play a game. In this repository, Greedy algorithm is used to design the bot.
+There are 3 main strategies that are implemented in this bot:
+1. Movement based on enemies' health and distance priority
+2. Weapon selection based on utilities
+3. Health pack strategy
+
+<a id="technologies"></a>
 ## Technologies and Requirements
 **Environment requirements**
 * Install the **Java SE Development Kit 8** for your environment here: http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
